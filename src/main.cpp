@@ -14,12 +14,13 @@
 #define FRAMES 10
 #define FRAME_TIME 1000 / FRAMES
 
-#define STEPSIZE 32
+#define STEPSIZE 12
 #define HALF_STEPSIZE STEPSIZE / 2
 
 #define CONTROLLER WS2812B
 
 CRGB leds[NUM_LEDS];
+
 
 
 
@@ -62,6 +63,9 @@ CRGB getAverage(CRGB prev, CRGB left, CRGB up) {
 CRGB modifyColor(CRGB baseValue) {
     CHSV hsv = rgb2hsv_approximate(baseValue);
     hsv.hue += random(1, STEPSIZE) - HALF_STEPSIZE;
+    hsv.value = 255;
+    hsv.saturation = 255;
+
     return CRGB(hsv);
 }
 
@@ -104,13 +108,14 @@ void determineNextColor(int row, int column) {
         }
     }
 
+
     leds[current] = modifyColor(base);
 }
 
 void draw() {
     for(int row = 0; row < HEIGHT; row++) {
         for (int column = 0; column < WIDTH; column++) {
-            leds[row * WIDTH + column] = CRGB::Purple;
+            leds[row * WIDTH + column] = CRGB::Blue;
         }
     }
 }
@@ -132,7 +137,7 @@ void setup() {
     FastLED.setBrightness(255 / 4);
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
 
-draw();
+    draw();
     FastLED.show();
 }
 
