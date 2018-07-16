@@ -9,7 +9,7 @@ struct MatrixConfig{
     }
 };
 
-struct Neighbour {
+struct Position {
     int current;
     int up;
     int left;
@@ -19,12 +19,12 @@ struct Neighbour {
     int row;
     int column;
 
-    bool isFirstRow(int row) {
-        return row == 0;
+    bool isFirstRow() {
+        return this->row == 0;
     }
 
-    bool isFirstColumn(int column) {
-        return column == 0;
+    bool isFirstColumn() {
+        return this->column == 0;
     }
 };
 
@@ -37,8 +37,8 @@ class PositionCalculator {
         this->config = config;
     }
 
-    Neighbour translate(int row, int column) {
-        Neighbour out;
+    Position translate(int row, int column) {
+        Position out;
 
         out.row = row;
         out.column = column;
