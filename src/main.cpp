@@ -19,9 +19,8 @@
 
 #define CONTROLLER WS2812B
 
-CRGB leds[NUM_LEDS];
-
-
+CHSV leds[NUM_LEDS];
+CRGB display[NUM_LEDS];
 
 
 /********************************************
@@ -44,29 +43,18 @@ bool isFirstColumn(int column) {
  * 
  */
 
-CRGB getAverage(CRGB prev, CRGB leftOrUp) {
-    return CRGB(
-        (prev.r + leftOrUp.r) / 2,
-        (prev.g + leftOrUp.g) / 2,
-        (prev.b + leftOrUp.b) / 2
-    );
+CHSV getAverage(CHSV prev, CHSV leftOrUp) {
+    return CHSV((prev.h + leftOrUp.h) / 2, 255, 255);
 }
 
-CRGB getAverage(CRGB prev, CRGB left, CRGB up) {
-    return CRGB(
-        (left.r + up.r + prev.r) / 3,
-        (left.g + up.g + prev.g) / 3,
-        (left.b + up.b + prev.b) / 3
-    );
+CHSV getAverage(CHSV prev, CHSV left, CHSV up) {
+    return CHSV((left.h + up.h + prev.h) / 3, 255, 255);
 }
 
-CRGB modifyColor(CRGB baseValue) {
-    CHSV hsv = rgb2hsv_approximate(baseValue);
-    hsv.hue += random(1, STEPSIZE) - HALF_STEPSIZE;
-    hsv.value = 255;
-    hsv.saturation = 255;
+CHSV modifyColor(CHSV baseValue) {
+    baseValue.hue += random(1, STEPSIZE) - HALF_STEPSIZE;
 
-    return CRGB(hsv);
+    return baseValue;
 }
 
 
@@ -93,7 +81,7 @@ void determineNextColor(int row, int column) {
         up = (row - 1) * WIDTH + column;
     }
 
-    CRGB base;
+    CHSV base;
     if (isFirstRow(row)) {
         if (isFirstColumn(column)) {
             base = leds[current];
@@ -112,10 +100,19 @@ void determineNextColor(int row, int column) {
     leds[current] = modifyColor(base);
 }
 
+void blit() {
+    for(int n = 0; n < NUM_LEDS; n++) {
+        display[n] = leds[n];
+    }
+
+}
+
 void draw() {
+    CHSV blubsi;
+    blubsi.setHSV(255, 0, 255);
     for(int row = 0; row < HEIGHT; row++) {
         for (int column = 0; column < WIDTH; column++) {
-            leds[row * WIDTH + column] = CRGB::Blue;
+            leds[row * WIDTH + column] = blubsi;
         }
     }
 }
@@ -134,18 +131,22 @@ void iterate() {
  */
 
 void setup() {
-    FastLED.setBrightness(255 / 4);
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(255 / 1);
+    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(display, NUM_LEDS);
 
     draw();
+    blit();
     FastLED.show();
+    delay(3000);
 }
 
 void loop() {
     unsigned long time = millis();
 
     iterate();
+    blit();
     FastLED.show();
+    
     time = millis() - time;
 
     delay(FRAME_TIME - time);
