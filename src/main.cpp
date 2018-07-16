@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <Arduino.h>
 #include <FastLED.h>
+#include "PositionCalculator.cpp"
 
 // Hardware Stuff
 #define NUM_LEDS 144
@@ -23,19 +24,19 @@ CHSV leds[NUM_LEDS];
 CRGB display[NUM_LEDS];
 
 
-/********************************************
- *  positioning 
- * 
- */
+struct ColorConfig {
+    int stepsize;
+    int halfStepsize;
 
-bool isFirstRow(int row) {
-    return row == 0;
-}
+    ColorConfig(int stepsize) {
+        this->stepsize = stepsize;
+        this->halfStepsize = stepsize / 2;
+    }
+};
 
-bool isFirstColumn(int column) {
-    return column == 0;
-}
 
+MatrixConfig matrixConfig = MatrixConfig(16, 9);
+PositionCalculator calculator = PositionCalculator(matrixConfig);
 
 
 /********************************************
@@ -66,38 +67,26 @@ CHSV modifyColor(CHSV baseValue) {
 
 
 void determineNextColor(int row, int column) {
-    int current;
-    int previous;
-    int up;
 
-    if (row % 2 == 0) {
-        current = row * WIDTH + column;
-        previous = current - 1;
-        up = current - (2 * column) - 1;
-
-    } else {
-        current = (row + 1) * WIDTH - column - 1;
-        previous = current + 1;
-        up = (row - 1) * WIDTH + column;
-    }
-
+    extern PositionCalculator calculator;
+    Neighbour neighbour = calculator.translate(row, column);
+    
     CHSV base;
-    if (isFirstRow(row)) {
-        if (isFirstColumn(column)) {
-            base = leds[current];
+    if (neighbour.isFirstRow(row)) {
+        if (neighbour.isFirstColumn(column)) {
+            base = leds[neighbour.current];
         } else {
-            base = getAverage(leds[current], leds[previous]);
+            base = getAverage(leds[neighbour.current], leds[neighbour.left]);
         }
     } else {
-        if (isFirstColumn(column)) {
-            base = getAverage(leds[current], leds[up]);
+        if (neighbour.isFirstColumn(column)) {
+            base = getAverage(leds[neighbour.current], leds[neighbour.up]);
         } else {
-            base = getAverage(leds[current], leds[up], leds[previous]);
+            base = getAverage(leds[neighbour.current], leds[neighbour.up], leds[neighbour.left]);
         }
     }
 
-
-    leds[current] = modifyColor(base);
+    leds[neighbour.current] = modifyColor(base);
 }
 
 void blit() {
@@ -131,19 +120,20 @@ void iterate() {
  */
 
 void setup() {
-    FastLED.setBrightness(255 / 1);
+    FastLED.setBrightness(255 / 3);
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(display, NUM_LEDS);
 
     draw();
     blit();
     FastLED.show();
+
     delay(3000);
 }
 
 void loop() {
     unsigned long time = millis();
 
-    iterate();
+    //iterate();
     blit();
     FastLED.show();
     
