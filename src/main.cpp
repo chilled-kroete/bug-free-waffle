@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include <FastLED.h>
 #include "config.cpp"
-#include "PositionCalculator.cpp"
-#include "ColorCalculator.cpp"
+#include "PositionCalculator.h"
+#include "ColorCalculator.h"
 
 CHSV leds[NUM_LEDS];
 CRGB display[NUM_LEDS];
@@ -15,17 +15,10 @@ PositionCalculator calculator = PositionCalculator(matrixConfig);
 ColorConfig colorConfig = ColorConfig(STEPSIZE);
 ColorCalculator colorCalculator = ColorCalculator(colorConfig);
 
-/********************************************
- *  Main iterative stuff 
- * 
- */
-
-
-void blit() {
+void bitblt() {
     for(int n = 0; n < NUM_LEDS; n++) {
         display[n] = leds[n];
     }
-
 }
 
 void draw() {
@@ -60,7 +53,7 @@ void setup() {
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(display, NUM_LEDS);
 
     draw();
-    blit();
+    bitblt();
     FastLED.show();
 
     delay(3000);
@@ -70,7 +63,7 @@ void loop() {
     unsigned long time = millis();
 
     iterate();
-    blit();
+    bitblt();
     FastLED.show();
     
     time = millis() - time;
