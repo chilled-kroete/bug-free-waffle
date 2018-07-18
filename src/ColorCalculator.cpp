@@ -1,4 +1,3 @@
-// #include <FastLED.h>
 #include "PositionCalculator.h"
 #include "ColorCalculator.h"
 
